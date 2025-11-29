@@ -71,12 +71,11 @@ public class Calculator {
     }
     
     public double subtract(double x, double y){
-    logger.info("[SUBTRACT] : "+x+", "+y);
-    double answer = x - Math.abs(y);
-    logger.info("[SUBTRACT - RESULT] : "+answer);
-    return answer;
-}
-
+        logger.info("[SUBTRACT] : "+x+", "+y);
+        double answer = x - y;
+        logger.info("[SUBTRACT - RESULT] : "+answer);
+        return answer;
+    }
     
     public double multiply(double x, double y){
         logger.info("[MULTIPLY] : "+x+", "+y);
