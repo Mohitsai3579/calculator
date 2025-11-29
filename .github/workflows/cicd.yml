@@ -31,7 +31,7 @@ jobs:
 
     - name: Upload JAR artifact
       # Save the JAR file so the next job can use it
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: calculator-jar
         path: target/calculator-1.0-SNAPSHOT-jar-with-dependencies.jar
@@ -43,11 +43,11 @@ jobs:
     
     steps:
     - name: Checkout Source Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Download JAR artifact
       # Download the JAR built in the previous step
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: calculator-jar
         path: target
