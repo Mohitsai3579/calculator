@@ -1,5 +1,5 @@
 pipeline {
- agent any
+  agent any
     environment {
         registry = "mohit3579/cal"
         registryCredential = 'dockerhub'   // set this in Jenkins credentials if you will push
