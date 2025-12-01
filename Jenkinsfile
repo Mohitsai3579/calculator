@@ -174,11 +174,7 @@ pipeline {
 
         stage('Push Docker Image') {
 
-            when {
-
-                expression { return env.dockerImage != null && env.dockerImage != '' }
-
-            }
+            
 
             steps {
 
