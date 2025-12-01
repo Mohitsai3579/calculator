@@ -1,31 +1,32 @@
 pipeline {
+    agent any
+
     environment {
         registry = "byterider/cal"
         registryCredential = 'dockerhub'
         dockerImage = ''
     }
-    agent any
 
     tools {
-        maven 'M3'   // name of the Maven installation you added in Global Tool Configuration
+        // Name must match the Maven installation name you create in Global Tool Configuration
+        maven 'M3'
     }
 
     stages {
         stage('SCM Checkout') {
             steps {
-                git 'https://github.com/Mohitsai3579/calculator.git'
+                // lightweight checkout
+                git url: 'https://github.com/Mohitsai3579/calculator.git'
             }
         }
 
         stage('Clean') {
             steps {
                 script {
-                    def mvnHome = tool name: 'M3', type: 'maven'
                     if (isUnix()) {
-                        sh "${mvnHome}/bin/mvn clean"
+                        sh 'mvn clean'
                     } else {
-                        // wrap path in quotes in case there are spaces
-                        bat "\"${mvnHome}\\bin\\mvn\" clean"
+                        bat 'mvn clean'
                     }
                 }
             }
@@ -34,11 +35,10 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    def mvnHome = tool name: 'M3', type: 'maven'
                     if (isUnix()) {
-                        sh "${mvnHome}/bin/mvn -B install"
+                        sh 'mvn -B install'
                     } else {
-                        bat "\"${mvnHome}\\bin\\mvn\" -B install"
+                        bat 'mvn -B install'
                     }
                 }
             }
@@ -47,26 +47,32 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    def mvnHome = tool name: 'M3', type: 'maven'
                     if (isUnix()) {
-                        sh "${mvnHome}/bin/mvn test"
+                        sh 'mvn test'
                     } else {
-                        bat "\"${mvnHome}\\bin\\mvn\" test"
+                        bat 'mvn test'
                     }
                 }
             }
         }
 
-        // Docker stages: be careful — docker build/push on Windows requires Docker available
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${registry}:${env.BUILD_NUMBER}")
+                    // only attempt docker build if there's a Dockerfile
+                    if (fileExists('Dockerfile')) {
+                        dockerImage = docker.build("${registry}:${env.BUILD_NUMBER}")
+                    } else {
+                        echo "No Dockerfile found — skipping docker build"
+                    }
                 }
             }
         }
 
         stage('Push Docker Image') {
+            when {
+                expression { return dockerImage != '' && dockerImage != null }
+            }
             steps {
                 script {
                     docker.withRegistry('', registryCredential) {
@@ -79,12 +85,16 @@ pipeline {
         stage('Clean Docker Images') {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh "docker rmi ${registry}:${env.BUILD_NUMBER} || true"
-                        sh "docker image prune -f"
+                    if (fileExists('Dockerfile')) {
+                        if (isUnix()) {
+                            sh "docker rmi ${registry}:${env.BUILD_NUMBER} || true"
+                            sh "docker image prune -f || true"
+                        } else {
+                            bat "docker rmi ${registry}:${env.BUILD_NUMBER} || exit 0"
+                            bat "docker image prune -f || exit 0"
+                        }
                     } else {
-                        bat "docker rmi ${registry}:${env.BUILD_NUMBER} || exit 0"
-                        bat "docker image prune -f"
+                        echo "No Dockerfile — nothing to clean"
                     }
                 }
             }
@@ -93,6 +103,7 @@ pipeline {
         stage('Deploy on Node') {
             steps {
                 script {
+                    // Rundeck notifier — keep as-is, ensure Rundeck plugin & instance configured
                     step([
                         $class: "RundeckNotifier",
                         rundeckInstance: "myRundeck",
@@ -102,6 +113,15 @@ pipeline {
                     ])
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished with status: ${currentBuild.currentResult}"
+        }
+        failure {
+            mail to: 'you@example.com', subject: "Build failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "See Jenkins console output."
         }
     }
 }
