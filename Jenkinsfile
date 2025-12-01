@@ -35,18 +35,17 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                script {
-                    def mvnHome = tool name: 'M3', type: 'maven'
-                    if (isUnix()) {
-                        sh "${mvnHome}/bin/mvn -B install"
-                    } else {
-                        bat "\"${mvnHome}\\bin\\mvn\" -B install"
-                    }
-                }
-            }
+    steps {
+        script {
+            // 1. Get the Maven tool path (Make sure 'M3' matches Manage Jenkins -> Tools -> Maven)
+            def mvnHome = tool name: 'M3', type: 'maven'
+            
+            // 2. Force Windows execution (bat) and point to mvn.cmd
+            // We added '.cmd' because Windows can fail to execute the file without the extension
+            bat "\"${mvnHome}\\bin\\mvn.cmd\" -B install"
         }
-
+    }
+}
         stage('Test') {
             steps {
                 script {
