@@ -172,51 +172,51 @@ pipeline {
 
 
 
-        stage('Push Docker Image') {
+        // stage('Push Docker Image') {
 
             
 
-            steps {
+        //     steps {
 
-                script {
+        //         script {
 
-                    try {
+        //             try {
 
-                        if (isUnix()) {
+        //                 if (isUnix()) {
 
-                            // use pipeline docker credentials (requires docker pipeline plugin & credential)
+        //                     // use pipeline docker credentials (requires docker pipeline plugin & credential)
 
-                            docker.withRegistry('', registryCredential) {
+        //                     docker.withRegistry('', registryCredential) {
 
-                                dockerImage.push()
+        //                         dockerImage.push()
 
-                                echo "Docker image pushed: ${dockerImage}"
+        //                         echo "Docker image pushed: ${dockerImage}"
 
-                            }
+        //                     }
 
-                        } else {
+        //                 } else {
 
-                            // Windows: try a simple docker push (credentials must be available on agent or prior login)
+        //                     // Windows: try a simple docker push (credentials must be available on agent or prior login)
 
-                            bat "docker push ${dockerImage}"
+        //                     bat "docker push ${dockerImage}"
 
-                            echo "Docker image pushed: ${dockerImage}"
+        //                     echo "Docker image pushed: ${dockerImage}"
 
-                        }
+        //                 }
 
-                    } catch (err) {
+        //             } catch (err) {
 
-                        echo "Docker push failed or skipped: ${err}"
+        //                 echo "Docker push failed or skipped: ${err}"
 
-                        // don't fail entire build for optional push failure
+        //                 // don't fail entire build for optional push failure
 
-                    }
+        //             }
 
-                }
+        //         }
 
-            }
+        //     }
 
-        }
+        // }
 
 
 
