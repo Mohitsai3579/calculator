@@ -169,10 +169,32 @@ pipeline {
             }
 
         }
-        stage('Push Docker Image') {             when {                 expression { return env.dockerImage != null && env.dockerImage != '' }             }             steps {                 script {                     try {                         if (isUnix()) {                             // use pipeline docker credentials (requires docker pipeline plugin & credential)                             docker.withRegistry('', registryCredential) {                                 dockerImage.push()                                 echo "Docker image pushed: ${dockerImage}"                             }                         } else {                             // Windows: try a simple docker push (credentials must be available on agent or prior login)                             bat "docker push ${dockerImage}"                             echo "Docker image pushed: ${dockerImage}"                         }                     } catch (err) {                         echo "Docker push failed or skipped: ${err}"                         // don't fail entire build for optional push failure                     }                 }             }         }
-
-
-        
+        stage('Push Docker Image') {   
+        when {        
+            expression { return env.dockerImage != null && env.dockerImage != '' }         
+        }           
+        steps {      
+            script {  
+                try {   
+                    if (isUnix()) {   
+                        // use pipeline docker credentials (requires docker pipeline plugin & credential) 
+                        docker.withRegistry('', registryCredential) {   
+                        dockerImage.push()                 
+                        echo "Docker image pushed: ${dockerImage}"       
+                    }                       
+                    } else { 
+                        // Windows: try a simple docker push (credentials must be available on agent or prior login)        
+                        bat "docker push ${dockerImage}"                       
+                        echo "Docker image pushed: ${dockerImage}"   
+                    }                    
+                } catch (err) 
+                {                     
+                    echo "Docker push failed or skipped: ${err}"                     
+                    // don't fail entire build for optional push failure      
+                }             
+            }           
+        }   
+        }      
 
 
 
